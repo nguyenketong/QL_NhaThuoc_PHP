@@ -56,12 +56,13 @@ class ThuocController extends AdminController
                 'NgayTao' => date('Y-m-d H:i:s')
             ];
 
-            // Upload hình ảnh
-            if (isset($_FILES['hinhAnhFile']) && $_FILES['hinhAnhFile']['size'] > 0) {
-                $data['HinhAnh'] = $this->uploadImage($_FILES['hinhAnhFile'], 'images');
-            } elseif (!empty($_POST['HinhAnh'])) {
-                $data['HinhAnh'] = $_POST['HinhAnh'];
-            }
+            // Upload hình ảnh hoặc paste URL
+            $data['HinhAnh'] = $this->processImage(
+                $_FILES['hinhAnhFile'] ?? null,
+                $_POST['HinhAnh'] ?? null,
+                null,
+                'images'
+            );
 
             // Insert thuốc
             $columns = implode(', ', array_keys($data));
@@ -137,14 +138,13 @@ class ThuocController extends AdminController
                 'IsActive' => isset($_POST['IsActive']) ? 1 : 0
             ];
 
-            // Upload hình ảnh mới
-            if (isset($_FILES['hinhAnhFile']) && $_FILES['hinhAnhFile']['size'] > 0) {
-                $data['HinhAnh'] = $this->uploadImage($_FILES['hinhAnhFile'], 'images');
-            } elseif (!empty($_POST['HinhAnh'])) {
-                $data['HinhAnh'] = $_POST['HinhAnh'];
-            } else {
-                $data['HinhAnh'] = $thuoc['HinhAnh'];
-            }
+            // Upload hình ảnh mới hoặc paste URL
+            $data['HinhAnh'] = $this->processImage(
+                $_FILES['hinhAnhFile'] ?? null,
+                $_POST['HinhAnh'] ?? null,
+                $thuoc['HinhAnh'],
+                'images'
+            );
 
             // Update thuốc
             $sets = [];
@@ -215,9 +215,17 @@ class ThuocController extends AdminController
         ]);
     }
 
-    public function delete($id)
+    public function delete($id = null)
     {
-        if ($this->isPost()) {
+        $id = $id ?? $_GET['id'] ?? $_POST['id'] ?? 0;
+        
+        if ($this->isPost() && $id) {
+            // Xóa các bảng liên quan trước
+            $this->db->prepare("DELETE FROM CT_THANH_PHAN WHERE MaThuoc = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM CT_TAC_DUNG_PHU WHERE MaThuoc = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM CT_DOI_TUONG WHERE MaThuoc = ?")->execute([$id]);
+            
+            // Xóa thuốc
             $stmt = $this->db->prepare("DELETE FROM THUOC WHERE MaThuoc = ?");
             $stmt->execute([$id]);
             $this->setFlash('success', 'Xóa thuốc thành công!');

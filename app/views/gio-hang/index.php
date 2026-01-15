@@ -101,7 +101,19 @@ if (!empty($gioHang)) {
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <img src="<?= !empty($item['HinhAnh']) ? $item['HinhAnh'] : BASE_URL . '/assets/images/no-image.svg' ?>" 
+                                                    <?php 
+                                                    $hinhAnh = $item['HinhAnh'] ?? '';
+                                                    if (!empty($hinhAnh)) {
+                                                        if (strpos($hinhAnh, 'http') === 0 || strpos($hinhAnh, BASE_URL) === 0) {
+                                                            $imgSrc = $hinhAnh;
+                                                        } else {
+                                                            $imgSrc = BASE_URL . $hinhAnh;
+                                                        }
+                                                    } else {
+                                                        $imgSrc = BASE_URL . '/assets/images/no-image.svg';
+                                                    }
+                                                    ?>
+                                                    <img src="<?= $imgSrc ?>" 
                                                          alt="<?= htmlspecialchars($item['TenThuoc']) ?>" 
                                                          style="width:60px;height:60px;object-fit:contain;"
                                                          onerror="this.src='<?= BASE_URL ?>/assets/images/no-image.svg'">
@@ -165,7 +177,19 @@ if (!empty($gioHang)) {
                                             <td style="width:40px;"><input type="checkbox" disabled></td>
                                             <td>
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <img src="<?= !empty($item['HinhAnh']) ? $item['HinhAnh'] : BASE_URL . '/assets/images/no-image.svg' ?>" 
+                                                    <?php 
+                                                    $hinhAnh2 = $item['HinhAnh'] ?? '';
+                                                    if (!empty($hinhAnh2)) {
+                                                        if (strpos($hinhAnh2, 'http') === 0 || strpos($hinhAnh2, BASE_URL) === 0) {
+                                                            $imgSrc2 = $hinhAnh2;
+                                                        } else {
+                                                            $imgSrc2 = BASE_URL . $hinhAnh2;
+                                                        }
+                                                    } else {
+                                                        $imgSrc2 = BASE_URL . '/assets/images/no-image.svg';
+                                                    }
+                                                    ?>
+                                                    <img src="<?= $imgSrc2 ?>" 
                                                          style="width:60px;height:60px;object-fit:contain;filter:grayscale(100%);">
                                                     <div>
                                                         <del><?= htmlspecialchars($item['TenThuoc'] ?? 'Sản phẩm') ?></del>

@@ -31,11 +31,13 @@
                     <tr>
                         <td><?= $item['MaThuoc'] ?></td>
                         <td>
-                            <?php if ($item['HinhAnh']): ?>
-                                <img src="<?= BASE_URL . $item['HinhAnh'] ?>" alt="" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                            <?php else: ?>
-                                <img src="<?= BASE_URL ?>/assets/images/no-image.svg" alt="" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                            <?php endif; ?>
+                            <?php 
+                            $imgSrc = $item['HinhAnh'] ?? '';
+                            if (empty($imgSrc)) {
+                                $imgSrc = BASE_URL . '/assets/images/no-image.svg';
+                            }
+                            ?>
+                            <img src="<?= htmlspecialchars($imgSrc) ?>" alt="" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
                         </td>
                         <td>
                             <strong><?= htmlspecialchars($item['TenThuoc']) ?></strong>

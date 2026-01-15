@@ -26,7 +26,7 @@
                         <td><?= $item['MaBaiViet'] ?></td>
                         <td>
                             <?php if ($item['HinhAnh']): ?>
-                                <img src="<?= BASE_URL . $item['HinhAnh'] ?>" alt="" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                <img src="<?= htmlspecialchars($item['HinhAnh']) ?>" alt="" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;">
                             <?php else: ?>
                                 <span class="text-muted">-</span>
                             <?php endif; ?>

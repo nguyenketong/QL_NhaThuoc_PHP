@@ -39,6 +39,15 @@ class DashboardController extends AdminController
         ");
         $doanhThuThang = $stmt->fetchColumn();
 
+        // 5b. Doanh thu hôm nay
+        $stmt = $this->db->query("
+            SELECT COALESCE(SUM(TongTien), 0) as DoanhThu
+            FROM DON_HANG 
+            WHERE TrangThai = 'Hoan thanh' 
+            AND DATE(NgayDatHang) = CURRENT_DATE()
+        ");
+        $doanhThuHomNay = $stmt->fetchColumn();
+
         // 6. Đơn hàng gần đây (Top 5)
         $stmt = $this->db->query("
             SELECT dh.MaDonHang, dh.NgayDatHang, dh.TrangThai, dh.TongTien, nd.HoTen
@@ -87,6 +96,7 @@ class DashboardController extends AdminController
             'hoanThanh' => $trangThaiDH['HoanThanh'] ?? 0,
             'daHuy' => $trangThaiDH['DaHuy'] ?? 0,
             'doanhThuThang' => $doanhThuThang,
+            'doanhThuHomNay' => $doanhThuHomNay,
             'donHangGanDay' => $donHangGanDay,
             'topThuocBanChay' => $topThuocBanChay,
             'chartLabels' => $chartLabels,

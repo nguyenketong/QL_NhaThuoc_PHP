@@ -3,10 +3,10 @@
  * Theo dõi đơn hàng
  */
 $trangThai = $donHang['TrangThai'] ?? '';
-$choXuLy = in_array($trangThai, ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao', 'Hoàn thành']);
-$dangGiao = in_array($trangThai, ['Đang giao', 'Hoàn thành']);
-$hoanThanh = $trangThai === 'Hoàn thành';
-$daHuy = $trangThai === 'Đã hủy';
+$choXuLy = in_array($trangThai, ['Cho xu ly', 'Dang giao', 'Hoan thanh']);
+$dangGiao = in_array($trangThai, ['Dang giao', 'Hoan thanh']);
+$hoanThanh = $trangThai === 'Hoan thanh';
+$daHuy = $trangThai === 'Da huy';
 ?>
 <div class="container py-4">
     <nav aria-label="breadcrumb">
@@ -26,7 +26,7 @@ $daHuy = $trangThai === 'Đã hủy';
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <strong>Ngày đặt hàng:</strong><br>
-                            <?= date('d/m/Y H:i', strtotime($donHang['NgayDat'])) ?>
+                            <?= date('d/m/Y H:i', strtotime($donHang['NgayDatHang'] ?? '')) ?>
                         </div>
                         <div class="col-md-6">
                             <strong>Tổng tiền:</strong><br>
@@ -52,7 +52,7 @@ $daHuy = $trangThai === 'Đã hủy';
                             </div>
                             <div class="step-content">
                                 <h6>Đơn hàng đã đặt</h6>
-                                <p class="text-muted small"><?= date('d/m/Y H:i', strtotime($donHang['NgayDat'])) ?></p>
+                                <p class="text-muted small"><?= date('d/m/Y H:i', strtotime($donHang['NgayDatHang'] ?? '')) ?></p>
                             </div>
                         </div>
 

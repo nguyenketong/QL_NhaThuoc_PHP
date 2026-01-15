@@ -3,6 +3,18 @@ class NguoiDungModel extends Model
 {
     protected $table = 'NGUOI_DUNG';
 
+    public function getById($id)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM NGUOI_DUNG WHERE MaNguoiDung = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+
+    public function create($data)
+    {
+        return $this->insert($data);
+    }
+
     public function findByPhone($sdt)
     {
         $stmt = $this->db->prepare("SELECT * FROM NGUOI_DUNG WHERE SoDienThoai = ?");

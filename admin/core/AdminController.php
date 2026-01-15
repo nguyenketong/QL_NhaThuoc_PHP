@@ -16,6 +16,26 @@ class AdminController
         
         // Đếm đơn hàng chờ xử lý
         $this->data['soDonChoXuLy'] = $this->countPendingOrders();
+        
+        // Kiểm tra yêu cầu đổi mật khẩu (trừ trang đổi mật khẩu và logout)
+        $this->checkPasswordChangeRequired();
+    }
+
+    protected function checkPasswordChangeRequired()
+    {
+        // Bỏ qua nếu đang ở trang auth
+        $controller = $_GET['controller'] ?? '';
+        $action = $_GET['action'] ?? '';
+        
+        if ($controller === 'auth') {
+            return; // Không kiểm tra khi đang ở trang auth
+        }
+        
+        // Nếu cần đổi mật khẩu thì redirect
+        if (isset($_SESSION['require_password_change']) && $_SESSION['require_password_change'] === true) {
+            header('Location: ' . BASE_URL . '/admin/?controller=auth&action=changePassword');
+            exit;
+        }
     }
 
     protected function countPendingOrders()
@@ -75,6 +95,9 @@ class AdminController
         return $_SERVER['REQUEST_METHOD'] === 'POST';
     }
 
+    /**
+     * Upload hình ảnh từ file
+     */
     protected function uploadImage($file, $folder = 'images')
     {
         if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
@@ -91,8 +114,33 @@ class AdminController
         $filePath = $uploadDir . $fileName;
 
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
-            return '/assets/' . $folder . '/' . $fileName;
+            // Trả về đường dẫn đầy đủ với BASE_URL
+            return BASE_URL . '/assets/' . $folder . '/' . $fileName;
         }
         return null;
+    }
+
+    /**
+     * Xử lý hình ảnh - hỗ trợ cả upload file và paste URL
+     * @param array|null $file - File upload từ $_FILES
+     * @param string|null $imageUrl - URL hình ảnh (paste link)
+     * @param string|null $currentImage - Hình ảnh hiện tại (khi edit)
+     * @param string $folder - Thư mục lưu
+     * @return string|null - Đường dẫn hình ảnh
+     */
+    protected function processImage($file, $imageUrl = null, $currentImage = null, $folder = 'images')
+    {
+        // Ưu tiên 1: Upload file mới
+        if (isset($file['tmp_name']) && !empty($file['tmp_name'])) {
+            return $this->uploadImage($file, $folder);
+        }
+        
+        // Ưu tiên 2: Paste URL mới
+        if (!empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            return $imageUrl;
+        }
+        
+        // Ưu tiên 3: Giữ hình cũ
+        return $currentImage;
     }
 }

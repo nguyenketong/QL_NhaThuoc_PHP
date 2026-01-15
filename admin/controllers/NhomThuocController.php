@@ -6,14 +6,31 @@ class NhomThuocController extends AdminController
 {
     public function index()
     {
+        // Lấy tất cả nhóm thuốc
         $stmt = $this->db->query("
             SELECT nt.*, ntc.TenNhomThuoc as TenDanhMucCha,
                    (SELECT COUNT(*) FROM THUOC WHERE MaNhomThuoc = nt.MaNhomThuoc) as SoLuongThuoc
             FROM NHOM_THUOC nt
             LEFT JOIN NHOM_THUOC ntc ON nt.MaDanhMucCha = ntc.MaNhomThuoc
-            ORDER BY nt.MaDanhMucCha IS NULL DESC, nt.TenNhomThuoc
+            ORDER BY nt.TenNhomThuoc
         ");
-        $danhSach = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $allItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Sắp xếp: danh mục cha trước, sau đó là các danh mục con của nó
+        $danhSach = [];
+        $danhMucCha = array_filter($allItems, fn($item) => empty($item['MaDanhMucCha']));
+        
+        foreach ($danhMucCha as $cha) {
+            $cha['isParent'] = true;
+            $danhSach[] = $cha;
+            // Tìm các danh mục con
+            foreach ($allItems as $con) {
+                if ($con['MaDanhMucCha'] == $cha['MaNhomThuoc']) {
+                    $con['isParent'] = false;
+                    $danhSach[] = $con;
+                }
+            }
+        }
 
         $this->view('nhom-thuoc/index', [
             'title' => 'Quản lý nhóm thuốc',
@@ -81,12 +98,32 @@ class NhomThuocController extends AdminController
         ]);
     }
 
-    public function delete($id)
+    public function delete($id = null)
     {
-        if ($this->isPost()) {
-            $stmt = $this->db->prepare("DELETE FROM NHOM_THUOC WHERE MaNhomThuoc = ?");
+        $id = $id ?? $_GET['id'] ?? $_POST['id'] ?? 0;
+        
+        if ($this->isPost() && $id) {
+            // Kiểm tra có thuốc nào thuộc nhóm này không
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM THUOC WHERE MaNhomThuoc = ?");
             $stmt->execute([$id]);
-            $this->setFlash('success', 'Xóa nhóm thuốc thành công!');
+            $count = $stmt->fetchColumn();
+            
+            if ($count > 0) {
+                $this->setFlash('error', "Không thể xóa! Nhóm thuốc này có $count sản phẩm.");
+            } else {
+                // Kiểm tra có danh mục con không
+                $stmt = $this->db->prepare("SELECT COUNT(*) FROM NHOM_THUOC WHERE MaDanhMucCha = ?");
+                $stmt->execute([$id]);
+                $countCon = $stmt->fetchColumn();
+                
+                if ($countCon > 0) {
+                    $this->setFlash('error', "Không thể xóa! Nhóm thuốc này có $countCon danh mục con.");
+                } else {
+                    $stmt = $this->db->prepare("DELETE FROM NHOM_THUOC WHERE MaNhomThuoc = ?");
+                    $stmt->execute([$id]);
+                    $this->setFlash('success', 'Xóa nhóm thuốc thành công!');
+                }
+            }
         }
         $this->redirect('?controller=nhom-thuoc');
     }

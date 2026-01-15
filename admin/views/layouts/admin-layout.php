@@ -101,6 +101,7 @@
         .stat-icon.green { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
         .stat-icon.orange { background: linear-gradient(135deg, #FF9800, #F57C00); }
         .stat-icon.red { background: linear-gradient(135deg, #F44336, #D32F2F); }
+        .stat-icon.purple { background: linear-gradient(135deg, #9C27B0, #7B1FA2); }
         .stat-value { font-size: 1.8rem; font-weight: 700; color: #333; }
         .stat-label { color: #666; font-size: 0.9rem; }
         
@@ -179,14 +180,50 @@
         <header class="admin-header">
             <h5 class="mb-0"><?= htmlspecialchars($title ?? 'Dashboard') ?></h5>
             <div class="d-flex align-items-center gap-3">
-                <?php if (($soDonChoXuLy ?? 0) > 0): ?>
-                    <a href="<?= BASE_URL ?>/admin/?controller=don-hang&trangThai=Cho xu ly" class="position-relative text-decoration-none" title="Đơn hàng chờ xử lý">
-                        <i class="fas fa-bell fs-5 text-warning"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
-                            <?= $soDonChoXuLy > 9 ? '9+' : $soDonChoXuLy ?>
-                        </span>
+                <!-- Thông báo đơn hàng mới -->
+                <div class="dropdown">
+                    <a href="#" class="position-relative text-decoration-none" data-bs-toggle="dropdown" id="notificationBell" title="Thông báo">
+                        <i class="fas fa-bell fs-5 <?= ($soDonChoXuLy ?? 0) > 0 ? 'text-warning' : 'text-muted' ?>"></i>
+                        <?php if (($soDonChoXuLy ?? 0) > 0): ?>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;" id="notificationCount">
+                                <?= $soDonChoXuLy > 99 ? '99+' : $soDonChoXuLy ?>
+                            </span>
+                        <?php endif; ?>
                     </a>
-                <?php endif; ?>
+                    <div class="dropdown-menu dropdown-menu-end shadow" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                        <div class="dropdown-header d-flex justify-content-between align-items-center">
+                            <strong><i class="fas fa-bell me-1"></i> Thông báo</strong>
+                            <?php if (($soDonChoXuLy ?? 0) > 0): ?>
+                                <span class="badge bg-danger"><?= $soDonChoXuLy ?> đơn mới</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <?php if (($soDonChoXuLy ?? 0) > 0): ?>
+                            <a class="dropdown-item py-3" href="<?= BASE_URL ?>/admin/?controller=don-hang&trangThai=Cho xu ly">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <span class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <strong class="text-dark">Đơn hàng chờ xử lý</strong>
+                                        <p class="text-muted small mb-0">Có <?= $soDonChoXuLy ?> đơn hàng cần xử lý</p>
+                                    </div>
+                                </div>
+                            </a>
+                        <?php else: ?>
+                            <div class="dropdown-item text-center text-muted py-4">
+                                <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                                <p class="mb-0">Không có thông báo mới</p>
+                            </div>
+                        <?php endif; ?>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-center small" href="<?= BASE_URL ?>/admin/?controller=don-hang">
+                            <i class="fas fa-list me-1"></i> Xem tất cả đơn hàng
+                        </a>
+                    </div>
+                </div>
                 <span class="text-muted"><?= date('d/m/Y') ?></span>
                 <div class="dropdown">
                     <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
@@ -196,7 +233,10 @@
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text text-muted small"><?= htmlspecialchars($adminPhone ?? '') ?></span></li>
                         <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/?controller=auth&action=changePassword">
+                            <i class="fas fa-key me-2"></i>Đổi mật khẩu</a></li>
                         <li><a class="dropdown-item" href="<?= BASE_URL ?>/"><i class="fas fa-globe me-2"></i>Xem trang web</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>/admin/?controller=auth&action=logout">
                             <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                     </ul>
@@ -226,5 +266,41 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Auto-refresh notification count every 30 seconds
+    function refreshNotificationCount() {
+        fetch('<?= BASE_URL ?>/admin/?controller=don-hang&action=countPending&ajax=1')
+            .then(response => response.json())
+            .then(data => {
+                const count = data.count || 0;
+                const badge = document.getElementById('notificationCount');
+                const bell = document.getElementById('notificationBell');
+                
+                if (count > 0) {
+                    if (badge) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                    } else {
+                        // Create badge if not exists
+                        const newBadge = document.createElement('span');
+                        newBadge.id = 'notificationCount';
+                        newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                        newBadge.style.fontSize = '10px';
+                        newBadge.textContent = count > 99 ? '99+' : count;
+                        bell.appendChild(newBadge);
+                    }
+                    bell.querySelector('i').classList.remove('text-muted');
+                    bell.querySelector('i').classList.add('text-warning');
+                } else {
+                    if (badge) badge.remove();
+                    bell.querySelector('i').classList.remove('text-warning');
+                    bell.querySelector('i').classList.add('text-muted');
+                }
+            })
+            .catch(err => console.log('Notification check failed'));
+    }
+    
+    // Check every 30 seconds
+    setInterval(refreshNotificationCount, 30000);
+    </script>
 </body>
 </html>

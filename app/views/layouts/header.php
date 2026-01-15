@@ -5,7 +5,8 @@
 $cartCount = 0;
 if (isset($_COOKIE['GioHang'])) {
     $gioHang = json_decode($_COOKIE['GioHang'], true) ?: [];
-    $cartCount = array_sum(array_column($gioHang, 'SoLuong'));
+    // Đếm số loại sản phẩm (số mặt hàng)
+    $cartCount = count($gioHang);
 }
 $userId = $_SESSION['user_id'] ?? ($_COOKIE['UserId'] ?? null);
 $hoTen = $_SESSION['user_name'] ?? '';
@@ -115,10 +116,19 @@ $thuongHieus = $db->query("SELECT * FROM THUONG_HIEU ORDER BY TenThuongHieu LIMI
                             <i class="fas fa-building me-1"></i> Thương hiệu <i class="fas fa-chevron-down ms-1 small"></i>
                         </a>
                         <div class="nav-dropdown-menu">
-                            <?php foreach ($thuongHieus as $th): ?>
+                            <?php foreach ($thuongHieus as $th): 
+                                $logoSrc = '';
+                                if (!empty($th['HinhAnh'])) {
+                                    if (strpos($th['HinhAnh'], 'http') === 0 || strpos($th['HinhAnh'], BASE_URL) === 0) {
+                                        $logoSrc = $th['HinhAnh'];
+                                    } else {
+                                        $logoSrc = BASE_URL . $th['HinhAnh'];
+                                    }
+                                }
+                            ?>
                                 <a href="<?= BASE_URL ?>/thuongHieu/chiTiet/<?= $th['MaThuongHieu'] ?>">
-                                    <?php if (!empty($th['HinhAnh'])): ?>
-                                        <img src="<?= BASE_URL . $th['HinhAnh'] ?>" alt="" class="brand-icon">
+                                    <?php if (!empty($logoSrc)): ?>
+                                        <img src="<?= $logoSrc ?>" alt="" class="brand-icon">
                                     <?php else: ?>
                                         <i class="fas fa-building brand-icon-placeholder"></i>
                                     <?php endif; ?>
@@ -285,10 +295,32 @@ $thuongHieus = $db->query("SELECT * FROM THUONG_HIEU ORDER BY TenThuongHieu LIMI
     </div>
 </div>
 
-<div class="header-spacer"></div>
+<div class="header-spacer" id="headerSpacer"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Tự động điều chỉnh header spacer
+    function adjustHeaderSpacer() {
+        const header = document.getElementById('headerWrapper');
+        const spacer = document.getElementById('headerSpacer');
+        const heroSlider = document.querySelector('.hero-slider-full');
+        
+        if (header && spacer) {
+            // Nếu có hero slider (trang chủ), không cần spacer vì slider sẽ nằm dưới header
+            if (heroSlider) {
+                spacer.style.height = header.offsetHeight + 'px';
+            } else {
+                // Các trang khác cần spacer
+                spacer.style.height = header.offsetHeight + 'px';
+            }
+        }
+    }
+    
+    // Chạy sau khi DOM load xong
+    setTimeout(adjustHeaderSpacer, 100);
+    window.addEventListener('resize', adjustHeaderSpacer);
+    
+    // Điều chỉnh lại sau khi scroll (khi header thu nhỏ)
     const headerWrapper = document.getElementById('headerWrapper');
     const mainHeader = document.querySelector('.main-header');
     window.addEventListener('scroll', function() {
@@ -300,6 +332,8 @@ document.addEventListener('DOMContentLoaded', function() {
             headerWrapper.classList.remove('header-scrolled');
             if (mainHeader) mainHeader.classList.remove('main-header-hidden');
         }
+        // Điều chỉnh spacer sau khi header thay đổi
+        setTimeout(adjustHeaderSpacer, 350);
     });
 
     <?php if ($userId): ?>
@@ -311,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadThongBao() {
     try {
-        const countRes = await fetch('<?= BASE_URL ?>/thong-bao/laySoLuongChuaDoc');
+        const countRes = await fetch('<?= BASE_URL ?>/thongBao/laySoLuongChuaDoc');
         const countData = await countRes.json();
         const badge = document.getElementById('notification-count');
         if (countData.soLuong > 0) {
@@ -321,30 +355,30 @@ async function loadThongBao() {
             badge.style.display = 'none';
         }
 
-        const listRes = await fetch('<?= BASE_URL ?>/thong-bao/layDanhSach');
+        const listRes = await fetch('<?= BASE_URL ?>/thongBao/layDanhSach');
         const listData = await listRes.json();
         const listEl = document.getElementById('notification-list');
         
         if (listData.thongBaos && listData.thongBaos.length > 0) {
             listEl.innerHTML = listData.thongBaos.map(tb => `
-                <a href="${tb.duongDan || '#'}" class="notification-item ${tb.daDoc ? '' : 'unread'}" onclick="danhDauDaDoc(${tb.maThongBao})">
-                    <div class="notif-title">${tb.tieuDe}</div>
-                    <div class="notif-content">${tb.noiDung}</div>
-                    <div class="notif-time"><i class="far fa-clock me-1"></i>${tb.ngayTao}</div>
+                <a href="<?= BASE_URL ?>${tb.duongDan || '#'}" class="notification-item ${tb.daDoc ? '' : 'unread'}" onclick="danhDauDaDoc(${tb.maThongBao})">
+                    <div class="notif-title">${tb.tieuDe || 'Thông báo'}</div>
+                    <div class="notif-content">${tb.noiDung || ''}</div>
+                    <div class="notif-time"><i class="far fa-clock me-1"></i>${tb.ngayTao || ''}</div>
                 </a>
             `).join('');
         } else {
             listEl.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-bell-slash fa-2x mb-2"></i><br>Không có thông báo</div>';
         }
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('Load notification error:', e); }
 }
 
 async function danhDauDaDoc(id) {
-    await fetch('<?= BASE_URL ?>/thong-bao/danhDauDaDoc', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'id=' + id });
+    await fetch('<?= BASE_URL ?>/thongBao/danhDauDaDoc', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'id=' + id });
 }
 
 async function danhDauTatCaDaDoc() {
-    await fetch('<?= BASE_URL ?>/thong-bao/danhDauTatCaDaDoc', { method: 'POST' });
+    await fetch('<?= BASE_URL ?>/thongBao/danhDauTatCaDaDoc', { method: 'POST' });
     loadThongBao();
 }
 </script>

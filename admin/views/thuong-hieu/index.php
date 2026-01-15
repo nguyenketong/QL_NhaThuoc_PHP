@@ -24,10 +24,10 @@
                     <tr>
                         <td><?= $item['MaThuongHieu'] ?></td>
                         <td>
-                            <?php if ($item['HinhAnh']): ?>
-                                <img src="<?= BASE_URL . $item['HinhAnh'] ?>" alt="" style="width: 50px; height: 50px; object-fit: contain;">
+                            <?php if (!empty($item['HinhAnh'])): ?>
+                                <img src="<?= htmlspecialchars($item['HinhAnh']) ?>" alt="" style="width: 50px; height: 50px; object-fit: contain;">
                             <?php else: ?>
-                                <span class="text-muted">-</span>
+                                <span class="text-muted"><i class="fas fa-building"></i></span>
                             <?php endif; ?>
                         </td>
                         <td><strong><?= htmlspecialchars($item['TenThuongHieu']) ?></strong></td>

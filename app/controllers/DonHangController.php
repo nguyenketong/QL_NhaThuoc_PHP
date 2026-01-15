@@ -4,6 +4,12 @@
  */
 class DonHangController extends Controller
 {
+    // GET: donHang (default route)
+    public function index()
+    {
+        $this->danhSach();
+    }
+
     // GET: donHang/danhSach
     public function danhSach()
     {
@@ -90,30 +96,24 @@ class DonHangController extends Controller
             $this->redirect('donHang/danhSach');
         }
 
-        // Chỉ hủy được đơn hàng đang chờ xác nhận
-        if ($donHang['TrangThai'] !== 'Chờ xác nhận') {
+        // Chỉ hủy được đơn hàng đang chờ xử lý
+        if ($donHang['TrangThai'] !== 'Cho xu ly') {
             $this->setFlash('error', 'Không thể hủy đơn hàng này!');
             $this->redirect('donHang/chiTiet/' . $id);
         }
 
+        // Không được hủy nếu đã thanh toán
+        if (!empty($donHang['DaThanhToan'])) {
+            $this->setFlash('error', 'Đơn hàng đã thanh toán không thể hủy!');
+            $this->redirect('donHang/chiTiet/' . $id);
+        }
+
         try {
-            $this->db->beginTransaction();
-
-            // Hoàn lại số lượng tồn
-            $chiTiet = $donHangModel->getChiTiet($id);
-            foreach ($chiTiet as $item) {
-                $stmt = $this->db->prepare("UPDATE THUOC SET SoLuongTon = SoLuongTon + ?, SoLuongDaBan = SoLuongDaBan - ? WHERE MaThuoc = ?");
-                $stmt->execute([$item['SoLuong'], $item['SoLuong'], $item['MaThuoc']]);
-            }
-
-            // Cập nhật trạng thái
-            $donHangModel->update($id, ['TrangThai' => 'Đã hủy']);
-
-            $this->db->commit();
+            // Cập nhật trạng thái (không cần hoàn tồn kho vì chưa trừ)
+            $donHangModel->updateTrangThai($id, 'Da huy');
             $this->setFlash('success', 'Đã hủy đơn hàng thành công!');
 
         } catch (Exception $e) {
-            $this->db->rollBack();
             $this->setFlash('error', 'Không thể hủy đơn hàng!');
         }
 

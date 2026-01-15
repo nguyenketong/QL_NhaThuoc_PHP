@@ -2,8 +2,23 @@
 /**
  * Trang chủ - Home/Index
  */
-$baiVietNoiBat = $baiViets[0] ?? null;
-$baiVietKhac = array_slice($baiViets ?? [], 1);
+// Tách bài viết nổi bật và bài viết khác
+$baiVietNoiBat = null;
+$baiVietKhac = [];
+if (!empty($baiViets)) {
+    foreach ($baiViets as $bv) {
+        if (($bv['IsNoiBat'] ?? 0) && !$baiVietNoiBat) {
+            $baiVietNoiBat = $bv;
+        } else {
+            $baiVietKhac[] = $bv;
+        }
+    }
+    // Nếu không có bài nổi bật, lấy bài đầu tiên
+    if (!$baiVietNoiBat && !empty($baiViets)) {
+        $baiVietNoiBat = $baiViets[0];
+        $baiVietKhac = array_slice($baiViets, 1);
+    }
+}
 ?>
 
 <!-- Hero Slider -->
@@ -189,3 +204,262 @@ $baiVietKhac = array_slice($baiViets ?? [], 1);
         </div>
     </div>
 </section>
+
+<!-- THƯƠNG HIỆU NỔI BẬT -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="section-header text-center mb-4">
+            <h2 class="section-title-main text-primary fw-bold">THƯƠNG HIỆU NỔI BẬT</h2>
+            <p class="text-muted">Các thương hiệu uy tín hàng đầu</p>
+        </div>
+        
+        <?php if (!empty($thuongHieus)): ?>
+            <div class="brand-slider-container position-relative">
+                <!-- Nút trái -->
+                <button class="brand-nav-btn brand-nav-prev" onclick="scrollBrandLeft()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="brand-marquee-wrapper" id="brandSlider">
+                    <div class="brand-marquee" id="brandMarquee">
+                        <div class="brand-marquee-content">
+                            <?php foreach ($thuongHieus as $th): ?>
+                                <?php 
+                                $logoSrc = '';
+                                if (!empty($th['HinhAnh'])) {
+                                    if (strpos($th['HinhAnh'], 'http') === 0 || strpos($th['HinhAnh'], BASE_URL) === 0) {
+                                        $logoSrc = $th['HinhAnh'];
+                                    } else {
+                                        $logoSrc = BASE_URL . $th['HinhAnh'];
+                                    }
+                                }
+                                ?>
+                                <a href="<?= BASE_URL ?>/thuongHieu/chiTiet/<?= $th['MaThuongHieu'] ?>" class="brand-item">
+                                    <?php if (!empty($logoSrc)): ?>
+                                        <img src="<?= $logoSrc ?>" 
+                                             alt="<?= htmlspecialchars($th['TenThuongHieu']) ?>"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <span class="brand-fallback" style="display:none;">
+                                            <i class="fas fa-building"></i>
+                                            <?= htmlspecialchars($th['TenThuongHieu']) ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="brand-fallback">
+                                            <i class="fas fa-building"></i>
+                                            <?= htmlspecialchars($th['TenThuongHieu']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                        <!-- Duplicate for seamless loop -->
+                        <div class="brand-marquee-content">
+                            <?php foreach ($thuongHieus as $th): ?>
+                                <?php 
+                                $logoSrc = '';
+                                if (!empty($th['HinhAnh'])) {
+                                    if (strpos($th['HinhAnh'], 'http') === 0 || strpos($th['HinhAnh'], BASE_URL) === 0) {
+                                        $logoSrc = $th['HinhAnh'];
+                                    } else {
+                                        $logoSrc = BASE_URL . $th['HinhAnh'];
+                                    }
+                                }
+                                ?>
+                                <a href="<?= BASE_URL ?>/thuongHieu/chiTiet/<?= $th['MaThuongHieu'] ?>" class="brand-item">
+                                    <?php if (!empty($logoSrc)): ?>
+                                        <img src="<?= $logoSrc ?>" 
+                                             alt="<?= htmlspecialchars($th['TenThuongHieu']) ?>"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <span class="brand-fallback" style="display:none;">
+                                            <i class="fas fa-building"></i>
+                                            <?= htmlspecialchars($th['TenThuongHieu']) ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="brand-fallback">
+                                            <i class="fas fa-building"></i>
+                                            <?= htmlspecialchars($th['TenThuongHieu']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Nút phải -->
+                <button class="brand-nav-btn brand-nav-next" onclick="scrollBrandRight()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <script>
+            let brandScrollPos = 0;
+            const brandMarquee = document.getElementById('brandMarquee');
+            let isAutoScroll = true;
+            
+            function scrollBrandLeft() {
+                brandScrollPos -= 200;
+                if (brandScrollPos < 0) brandScrollPos = 0;
+                brandMarquee.style.animation = 'none';
+                brandMarquee.style.transform = `translateX(-${brandScrollPos}px)`;
+                isAutoScroll = false;
+                // Resume auto scroll after 3 seconds
+                setTimeout(() => {
+                    if (!isAutoScroll) {
+                        brandMarquee.style.animation = '';
+                        brandMarquee.style.transform = '';
+                        isAutoScroll = true;
+                    }
+                }, 3000);
+            }
+            
+            function scrollBrandRight() {
+                const maxScroll = brandMarquee.scrollWidth / 2;
+                brandScrollPos += 200;
+                if (brandScrollPos > maxScroll) brandScrollPos = maxScroll;
+                brandMarquee.style.animation = 'none';
+                brandMarquee.style.transform = `translateX(-${brandScrollPos}px)`;
+                isAutoScroll = false;
+                // Resume auto scroll after 3 seconds
+                setTimeout(() => {
+                    if (!isAutoScroll) {
+                        brandMarquee.style.animation = '';
+                        brandMarquee.style.transform = '';
+                        isAutoScroll = true;
+                    }
+                }, 3000);
+            }
+            </script>
+            
+            <div class="text-center mt-4">
+                <a href="<?= BASE_URL ?>/thuongHieu/danhSach" class="btn btn-outline-primary px-4">
+                    <i class="fas fa-building me-2"></i> Xem tất cả thương hiệu
+                </a>
+            </div>
+        <?php else: ?>
+            <div class="text-center py-4">
+                <p class="text-muted">Chưa có thương hiệu</p>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>
+
+<!-- GÓC SỨC KHỎE - BÀI VIẾT NỔI BẬT -->
+<?php if (!empty($baiViets)): ?>
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-4">
+            <h2 class="section-title-main text-primary fw-bold">GÓC SỨC KHỎE</h2>
+            <p class="text-muted">Chia sẻ kiến thức y tế, sức khỏe và chăm sóc bản thân</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Bài viết nổi bật (bên trái) -->
+            <div class="col-lg-6">
+                <?php if ($baiVietNoiBat): ?>
+                    <?php 
+                    $hinhAnhBV = $baiVietNoiBat['HinhAnh'] ?? '';
+                    if (!empty($hinhAnhBV) && strpos($hinhAnhBV, 'http') !== 0 && strpos($hinhAnhBV, BASE_URL) !== 0) {
+                        $hinhAnhBV = BASE_URL . $hinhAnhBV;
+                    }
+                    ?>
+                    <div class="card border-0 shadow-sm h-100 health-featured-card">
+                        <a href="<?= BASE_URL ?>/baiViet/chiTiet/<?= $baiVietNoiBat['MaBaiViet'] ?>" class="text-decoration-none">
+                            <div class="health-featured-img position-relative" style="height: 280px; overflow: hidden;">
+                                <?php if (!empty($hinhAnhBV)): ?>
+                                    <img src="<?= htmlspecialchars($hinhAnhBV) ?>" 
+                                         alt="<?= htmlspecialchars($baiVietNoiBat['TieuDe']) ?>"
+                                         class="w-100 h-100" style="object-fit: cover;"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="health-placeholder" style="display:none; height:100%; background:#e9ecef; align-items:center; justify-content:center;">
+                                        <i class="fas fa-heartbeat fa-4x text-primary"></i>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="health-placeholder" style="height:100%; background:#e9ecef; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fas fa-heartbeat fa-4x text-primary"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($baiVietNoiBat['IsNoiBat'] ?? 0): ?>
+                                    <span class="badge bg-danger position-absolute" style="top:15px; left:15px;">
+                                        <i class="fas fa-star"></i> Nổi bật
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title text-dark fw-bold"><?= htmlspecialchars($baiVietNoiBat['TieuDe']) ?></h5>
+                                <p class="card-text text-muted small">
+                                    <?= htmlspecialchars(mb_substr($baiVietNoiBat['MoTaNgan'] ?? '', 0, 150)) ?>...
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <?= date('d/m/Y', strtotime($baiVietNoiBat['NgayDang'])) ?>
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-eye me-1"></i>
+                                        <?= number_format($baiVietNoiBat['LuotXem'] ?? 0) ?> lượt xem
+                                    </small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <!-- Danh sách bài viết khác (bên phải) -->
+            <div class="col-lg-6">
+                <div class="health-article-list">
+                    <?php foreach (array_slice($baiVietKhac, 0, 4) as $bv): ?>
+                        <?php 
+                        $hinhAnhBV2 = $bv['HinhAnh'] ?? '';
+                        if (!empty($hinhAnhBV2) && strpos($hinhAnhBV2, 'http') !== 0 && strpos($hinhAnhBV2, BASE_URL) !== 0) {
+                            $hinhAnhBV2 = BASE_URL . $hinhAnhBV2;
+                        }
+                        ?>
+                        <a href="<?= BASE_URL ?>/baiViet/chiTiet/<?= $bv['MaBaiViet'] ?>" class="health-article-item d-flex mb-3 text-decoration-none">
+                            <div class="health-article-thumb me-3" style="width:100px; height:80px; flex-shrink:0; overflow:hidden; border-radius:8px;">
+                                <?php if (!empty($hinhAnhBV2)): ?>
+                                    <img src="<?= htmlspecialchars($hinhAnhBV2) ?>" 
+                                         alt="<?= htmlspecialchars($bv['TieuDe']) ?>"
+                                         class="w-100 h-100" style="object-fit: cover;"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="health-thumb-placeholder" style="display:none; width:100%; height:100%; background:#e9ecef; align-items:center; justify-content:center;">
+                                        <i class="fas fa-heartbeat text-primary"></i>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="health-thumb-placeholder" style="width:100%; height:100%; background:#e9ecef; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fas fa-heartbeat text-primary"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="health-article-info flex-grow-1">
+                                <h6 class="mb-1 text-dark fw-semibold" style="line-height:1.4;">
+                                    <?= htmlspecialchars(mb_substr($bv['TieuDe'], 0, 60)) ?><?= mb_strlen($bv['TieuDe']) > 60 ? '...' : '' ?>
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    <?= date('d/m/Y', strtotime($bv['NgayDang'])) ?>
+                                    <span class="ms-2">
+                                        <i class="fas fa-eye me-1"></i>
+                                        <?= number_format($bv['LuotXem'] ?? 0) ?>
+                                    </span>
+                                </small>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                    
+                    <?php if (empty($baiVietKhac)): ?>
+                        <p class="text-muted text-center py-3">Chưa có bài viết khác</p>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="<?= BASE_URL ?>/baiViet/danhSach" class="btn btn-outline-primary">
+                        <i class="fas fa-newspaper me-2"></i> Xem tất cả bài viết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>

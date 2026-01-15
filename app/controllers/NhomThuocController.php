@@ -4,6 +4,13 @@
  */
 class NhomThuocController extends Controller
 {
+    // GET: nhomThuoc (default route)
+    public function index()
+    {
+        // Redirect to danhSach
+        $this->danhSach();
+    }
+
     // GET: nhomThuoc/danhSach
     public function danhSach()
     {

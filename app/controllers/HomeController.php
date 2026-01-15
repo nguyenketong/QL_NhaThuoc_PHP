@@ -6,6 +6,14 @@ class HomeController extends Controller
         $thuocModel = $this->model('ThuocModel');
         $nhomModel = $this->model('NhomThuocModel');
         
+        // Lấy bài viết: ưu tiên bài nổi bật trước
+        $baiViets = $this->db->query("
+            SELECT * FROM BAIVIET 
+            WHERE IsActive = 1 
+            ORDER BY IsNoiBat DESC, NgayDang DESC 
+            LIMIT 5
+        ")->fetchAll();
+        
         $data = [
             'title' => 'Trang chủ - ' . STORE_NAME,
             'sanPhamMoi' => $thuocModel->getSanPhamMoi(10),
@@ -13,7 +21,7 @@ class HomeController extends Controller
             'sanPhamBanChay' => $thuocModel->getSanPhamBanChay(10),
             'nhomThuocs' => $nhomModel->getAll(),
             'thuongHieus' => $this->db->query("SELECT * FROM THUONG_HIEU ORDER BY TenThuongHieu")->fetchAll(),
-            'baiViets' => $this->db->query("SELECT * FROM BAIVIET WHERE IsActive = 1 ORDER BY NgayDang DESC LIMIT 10")->fetchAll()
+            'baiViets' => $baiViets
         ];
         
         $this->view('home/index', $data);

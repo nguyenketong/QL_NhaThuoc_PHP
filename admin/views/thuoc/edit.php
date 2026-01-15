@@ -51,7 +51,7 @@
                             <label class="form-label">Hình ảnh</label>
                             <?php if ($thuoc['HinhAnh']): ?>
                                 <div class="mb-2">
-                                    <img src="<?= BASE_URL . $thuoc['HinhAnh'] ?>" alt="" style="max-width: 150px; border-radius: 8px;">
+                                    <img src="<?= htmlspecialchars($thuoc['HinhAnh']) ?>" alt="" style="max-width: 150px; border-radius: 8px;">
                                 </div>
                             <?php endif; ?>
                             <input type="file" name="hinhAnhFile" class="form-control" accept="image/*" />
@@ -277,6 +277,23 @@
 </form>
 
 <script>
+    // Tính giá bán tự động theo phần trăm giảm
+    const giaBanInput = document.getElementById('GiaBan');
+    const giaGocInput = document.getElementById('GiaGoc');
+    const phanTramGiamInput = document.getElementById('PhanTramGiam');
+
+    function tinhGiaBan() {
+        const giaGoc = parseFloat(giaGocInput.value) || 0;
+        const phanTram = parseFloat(phanTramGiamInput.value) || 0;
+        
+        if (giaGoc > 0 && phanTram >= 0 && phanTram < 100) {
+            giaBanInput.value = Math.round(giaGoc * (100 - phanTram) / 100);
+        }
+    }
+
+    giaGocInput.addEventListener('input', tinhGiaBan);
+    phanTramGiamInput.addEventListener('input', tinhGiaBan);
+
     function themThanhPhan() {
         var container = document.getElementById('thanhPhanContainer');
         var firstRow = container.querySelector('.thanh-phan-row');

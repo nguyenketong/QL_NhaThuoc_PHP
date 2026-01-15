@@ -78,10 +78,10 @@ $vietQrUrl .= "&accountName=" . urlencode(BANK_ACCOUNT_NAME);
                     </div>
 
                     <div class="d-flex gap-2 justify-content-center">
-                        <a href="<?= BASE_URL ?>/don-hang/chi-tiet/<?= $donHang['MaDonHang'] ?>" class="btn btn-success">
+                        <a href="<?= BASE_URL ?>/donHang/chiTiet/<?= $donHang['MaDonHang'] ?>" class="btn btn-success">
                             <i class="fas fa-check"></i> Đã thanh toán
                         </a>
-                        <a href="<?= BASE_URL ?>/don-hang" class="btn btn-outline-secondary">
+                        <a href="<?= BASE_URL ?>/donHang/danhSach" class="btn btn-outline-secondary">
                             <i class="fas fa-list"></i> Xem đơn hàng
                         </a>
                     </div>

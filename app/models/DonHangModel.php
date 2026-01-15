@@ -10,6 +10,12 @@ class DonHangModel extends Model
         return $stmt->fetchAll();
     }
 
+    // Alias cho getByUser
+    public function getByNguoiDung($maNguoiDung)
+    {
+        return $this->getByUser($maNguoiDung);
+    }
+
     public function getById($id)
     {
         $stmt = $this->db->prepare("SELECT dh.*, nd.HoTen, nd.SoDienThoai 
@@ -37,14 +43,10 @@ class DonHangModel extends Model
             // Tạo đơn hàng
             $maDonHang = $this->insert($data);
             
-            // Thêm chi tiết
+            // Thêm chi tiết (KHÔNG trừ tồn kho - sẽ trừ khi admin xác nhận giao hàng)
             $stmt = $this->db->prepare("INSERT INTO CHI_TIET_DON_HANG (MaDonHang, MaThuoc, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, ?, ?)");
             foreach ($chiTiet as $item) {
                 $stmt->execute([$maDonHang, $item['maThuoc'], $item['soLuong'], $item['donGia'], $item['thanhTien']]);
-                
-                // Giảm số lượng tồn
-                $this->db->prepare("UPDATE THUOC SET SoLuongTon = SoLuongTon - ? WHERE MaThuoc = ?")
-                         ->execute([$item['soLuong'], $item['maThuoc']]);
             }
             
             $this->db->commit();
@@ -64,19 +66,16 @@ class DonHangModel extends Model
     public function huyDon($maDonHang, $maNguoiDung)
     {
         // Kiểm tra đơn hàng thuộc về user và đang ở trạng thái có thể hủy
-        $stmt = $this->db->prepare("SELECT * FROM DON_HANG WHERE MaDonHang = ? AND MaNguoiDung = ? AND TrangThai = 'Chờ xác nhận'");
+        $stmt = $this->db->prepare("SELECT * FROM DON_HANG WHERE MaDonHang = ? AND MaNguoiDung = ? AND TrangThai = 'Cho xu ly'");
         $stmt->execute([$maDonHang, $maNguoiDung]);
         $don = $stmt->fetch();
         
         if (!$don) return false;
         
-        // Hoàn lại số lượng tồn
-        $chiTiet = $this->getChiTiet($maDonHang);
-        foreach ($chiTiet as $item) {
-            $this->db->prepare("UPDATE THUOC SET SoLuongTon = SoLuongTon + ? WHERE MaThuoc = ?")
-                     ->execute([$item['SoLuong'], $item['MaThuoc']]);
-        }
+        // Không được hủy nếu đã thanh toán
+        if (!empty($don['DaThanhToan'])) return false;
         
-        return $this->updateTrangThai($maDonHang, 'Đã hủy');
+        // Không cần hoàn tồn kho vì tồn kho chỉ bị trừ khi admin xác nhận giao hàng
+        return $this->updateTrangThai($maDonHang, 'Da huy');
     }
 }

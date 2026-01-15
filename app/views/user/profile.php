@@ -17,10 +17,22 @@
             <div class="card mb-4">
                 <div class="card-body text-center">
                     <div class="avatar mb-3">
-                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        <?php if (!empty($nguoiDung['Avatar'])): ?>
+                            <img src="<?= htmlspecialchars($nguoiDung['Avatar']) ?>" alt="Avatar" class="rounded-circle" style="width:80px; height:80px; object-fit:cover;">
+                        <?php else: ?>
+                            <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        <?php endif; ?>
                     </div>
                     <h5><?= htmlspecialchars($nguoiDung['HoTen'] ?? 'Khách hàng') ?></h5>
-                    <p class="text-muted"><?= htmlspecialchars($nguoiDung['SoDienThoai']) ?></p>
+                    <p class="text-muted">
+                        <?php if (!empty($nguoiDung['SoDienThoai'])): ?>
+                            <?= htmlspecialchars($nguoiDung['SoDienThoai']) ?>
+                        <?php elseif (!empty($nguoiDung['Email'])): ?>
+                            <?= htmlspecialchars($nguoiDung['Email']) ?>
+                        <?php else: ?>
+                            <span class="text-muted">Chưa cập nhật</span>
+                        <?php endif; ?>
+                    </p>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item active">
@@ -79,11 +91,30 @@
                 </div>
                 <div class="card-body">
                     <form action="<?= BASE_URL ?>/user/updateProfile" method="POST">
+                        <?php if (!empty($nguoiDung['Email'])): ?>
+                        <!-- Đăng nhập bằng Google -->
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" value="<?= htmlspecialchars($nguoiDung['Email']) ?>" disabled>
+                            <small class="text-muted">Đăng nhập bằng Google</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" name="soDienThoai" class="form-control" 
+                                   value="<?= htmlspecialchars($nguoiDung['SoDienThoai'] ?? '') ?>" 
+                                   placeholder="Nhập số điện thoại để nhận hàng..."
+                                   pattern="[0-9]{10,11}" required>
+                            <small class="text-muted">Số điện thoại dùng để liên hệ khi giao hàng</small>
+                        </div>
+                        <?php else: ?>
+                        <!-- Đăng nhập bằng SĐT -->
                         <div class="mb-3">
                             <label class="form-label">Số điện thoại</label>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($nguoiDung['SoDienThoai']) ?>" disabled>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($nguoiDung['SoDienThoai'] ?? '') ?>" disabled>
                             <small class="text-muted">Không thể thay đổi số điện thoại</small>
                         </div>
+                        <?php endif; ?>
 
                         <div class="mb-3">
                             <label class="form-label">Họ tên</label>

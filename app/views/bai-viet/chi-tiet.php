@@ -47,7 +47,7 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card sticky-top" style="top: 100px;">
+            <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="fas fa-newspaper"></i> Bài viết liên quan</h5>
                 </div>

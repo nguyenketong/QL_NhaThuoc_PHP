@@ -155,73 +155,203 @@
     background: #0b5ed7;
 }
 
-/* Floating Buttons */
+/* Floating Buttons - Modern Style with Click Toggle */
 .floating-buttons-wrapper {
     position: fixed;
     bottom: 100px;
-    right: 20px;
-    z-index: 998;
+    right: 25px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+/* Nút chính */
 .float-btn-main {
-    width: 50px;
-    height: 50px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    background: #0d6efd;
+    background: linear-gradient(135deg, #0d6efd, #0056b3);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+    transition: all 0.3s ease;
+    font-size: 22px;
+    border: none;
+    outline: none;
+    position: relative;
 }
 
+.float-btn-main:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(13, 110, 253, 0.5);
+}
+
+.float-btn-main.active {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    transform: rotate(180deg);
+}
+
+/* Container các nút con */
 .floating-buttons {
-    position: absolute;
-    bottom: 60px;
-    right: 0;
-    display: none;
+    display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-bottom: 15px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
 }
 
-.floating-buttons-wrapper:hover .floating-buttons {
-    display: flex;
+.floating-buttons.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
+/* Từng nút con */
 .float-btn {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     text-decoration: none;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     position: relative;
+    transition: all 0.3s ease;
+    font-size: 18px;
+    transform: scale(0);
 }
 
-.float-btn.zalo { background: #0068ff; }
-.float-btn.cart { background: #28a745; }
-.float-btn.phone { background: #dc3545; }
-.float-btn.support { background: #ffc107; color: #000; }
+.floating-buttons.show .float-btn {
+    transform: scale(1);
+}
 
+/* Delay animation cho từng nút */
+.floating-buttons.show .float-btn:nth-child(1) { transition-delay: 0s; }
+.floating-buttons.show .float-btn:nth-child(2) { transition-delay: 0.05s; }
+.floating-buttons.show .float-btn:nth-child(3) { transition-delay: 0.1s; }
+
+/* Màu sắc */
+.float-btn.zalo { 
+    background: linear-gradient(135deg, #0068ff, #0052cc);
+    box-shadow: 0 4px 15px rgba(0, 104, 255, 0.4);
+}
+.float-btn.cart { 
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+.float-btn.phone { 
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+    animation: phone-ring 2s ease-in-out infinite;
+}
+
+.float-btn:hover {
+    transform: scale(1.15) !important;
+    color: #fff;
+}
+
+.float-btn.zalo:hover { box-shadow: 0 6px 25px rgba(0, 104, 255, 0.6); }
+.float-btn.cart:hover { box-shadow: 0 6px 25px rgba(40, 167, 69, 0.6); }
+.float-btn.phone:hover { 
+    box-shadow: 0 6px 25px rgba(220, 53, 69, 0.6);
+    animation: none;
+}
+
+/* Label tooltip */
 .float-label {
     position: absolute;
-    right: 55px;
+    right: 60px;
     background: #333;
     color: #fff;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
     white-space: nowrap;
     opacity: 0;
-    transition: opacity 0.3s;
+    visibility: hidden;
+    transform: translateX(10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.float-label::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: #333;
 }
 
 .float-btn:hover .float-label {
     opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+/* Animation điện thoại rung */
+@keyframes phone-ring {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    10% { transform: scale(1) rotate(-15deg); }
+    20% { transform: scale(1) rotate(15deg); }
+    30% { transform: scale(1) rotate(-15deg); }
+    40% { transform: scale(1) rotate(15deg); }
+    50% { transform: scale(1) rotate(0deg); }
+}
+
+/* Pulse effect cho nút chính */
+.float-btn-main::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: inherit;
+    animation: pulse-ring 2s ease-out infinite;
+    z-index: -1;
+}
+
+.float-btn-main.active::before {
+    animation: none;
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .floating-buttons-wrapper {
+        bottom: 20px;
+        right: 15px;
+    }
+    
+    .float-btn-main {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+    }
+    
+    .float-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 16px;
+    }
+    
+    .float-label {
+        display: none;
+    }
 }
 
 /* Cart Badge Animation */
@@ -259,4 +389,58 @@
         bottom: 80px;
         right: 10px;
     }
+}
+
+
+/* Health Articles - Góc sức khỏe */
+.health-featured-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.health-featured-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+.health-featured-card .card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.health-article-item {
+    padding: 12px;
+    background: #fff;
+    border-radius: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.health-article-item:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.health-article-item h6 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.3s;
+}
+
+.health-article-item:hover h6 {
+    color: #0d6efd !important;
+}
+
+.health-article-thumb img {
+    transition: transform 0.3s;
+}
+
+.health-article-item:hover .health-article-thumb img {
+    transform: scale(1.1);
 }

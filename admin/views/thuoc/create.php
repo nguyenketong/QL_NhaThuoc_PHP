@@ -49,9 +49,12 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Hình ảnh</label>
-                            <input type="file" name="hinhAnhFile" class="form-control" accept="image/*" />
+                            <div id="imagePreview" class="mb-2" style="display:none;">
+                                <img id="previewImg" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;">
+                            </div>
+                            <input type="file" name="hinhAnhFile" id="hinhAnhFile" class="form-control" accept="image/*" />
                             <small class="text-muted">Hoặc nhập URL:</small>
-                            <input type="text" name="HinhAnh" class="form-control mt-1" placeholder="https://..." />
+                            <input type="text" name="HinhAnh" id="hinhAnhUrl" class="form-control mt-1" placeholder="https://..." />
                         </div>
                     </div>
                 </div>

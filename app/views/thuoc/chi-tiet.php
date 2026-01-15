@@ -27,7 +27,19 @@ $khongTheMua = $ngungKinhDoanh || $hetHang;
         <!-- Hình ảnh -->
         <div class="col-md-5">
             <div class="product-detail-image text-center p-4 bg-light rounded">
-                <img src="<?= !empty($thuoc['HinhAnh']) ? $thuoc['HinhAnh'] : BASE_URL . '/assets/images/no-image.svg' ?>" 
+                <?php 
+                $hinhAnh = $thuoc['HinhAnh'] ?? '';
+                if (!empty($hinhAnh)) {
+                    if (strpos($hinhAnh, 'http') === 0 || strpos($hinhAnh, BASE_URL) === 0) {
+                        $imgSrc = $hinhAnh;
+                    } else {
+                        $imgSrc = BASE_URL . $hinhAnh;
+                    }
+                } else {
+                    $imgSrc = BASE_URL . '/assets/images/no-image.svg';
+                }
+                ?>
+                <img src="<?= $imgSrc ?>" 
                      alt="<?= htmlspecialchars($thuoc['TenThuoc']) ?>" 
                      class="img-fluid" style="max-height: 400px;"
                      onerror="this.src='<?= BASE_URL ?>/assets/images/no-image.svg'">
@@ -137,6 +149,9 @@ $khongTheMua = $ngungKinhDoanh || $hetHang;
                 <li class="nav-item">
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tacDungPhu">Tác dụng phụ</button>
                 </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#doiTuong">Đối tượng sử dụng</button>
+                </li>
             </ul>
             <div class="tab-content p-4 border border-top-0 rounded-bottom">
                 <div class="tab-pane fade show active" id="moTa">
@@ -157,11 +172,30 @@ $khongTheMua = $ngungKinhDoanh || $hetHang;
                     <?php if (!empty($tacDungPhus)): ?>
                         <ul>
                             <?php foreach ($tacDungPhus as $tdp): ?>
-                                <li><?= htmlspecialchars($tdp['TenTacDungPhu']) ?></li>
+                                <li><?= htmlspecialchars($tdp['TenTacDungPhu']) ?> 
+                                    <?php if (!empty($tdp['MucDo'])): ?>
+                                        <span class="badge bg-<?= $tdp['MucDo'] == 'Nặng' ? 'danger' : ($tdp['MucDo'] == 'Trung bình' ? 'warning' : 'info') ?>"><?= htmlspecialchars($tdp['MucDo']) ?></span>
+                                    <?php endif; ?>
+                                </li>
                             <?php endforeach; ?>
                         </ul>
                     <?php else: ?>
                         <p class="text-muted">Đang cập nhật...</p>
+                    <?php endif; ?>
+                </div>
+                <div class="tab-pane fade" id="doiTuong">
+                    <?php if (!empty($doiTuongs)): ?>
+                        <div class="row">
+                            <?php foreach ($doiTuongs as $dt): ?>
+                                <div class="col-md-4 col-6 mb-2">
+                                    <span class="badge bg-primary p-2">
+                                        <i class="fas fa-user me-1"></i> <?= htmlspecialchars($dt['TenDoiTuong']) ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-muted">Phù hợp với mọi đối tượng (theo chỉ định của bác sĩ)</p>
                     <?php endif; ?>
                 </div>
             </div>

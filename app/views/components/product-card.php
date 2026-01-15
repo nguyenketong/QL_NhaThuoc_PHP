@@ -42,7 +42,11 @@ $giaBan = $dangKhuyenMai ? ($giaGoc * (100 - $phanTramGiam) / 100) : ($thuoc['Gi
 
         <!-- Image -->
         <div class="product-image">
-            <img src="<?= !empty($thuoc['HinhAnh']) ? $thuoc['HinhAnh'] : BASE_URL . '/assets/images/no-image.svg' ?>" 
+            <?php 
+            $hinhAnh = $thuoc['HinhAnh'] ?? '';
+            $imgSrc = !empty($hinhAnh) ? $hinhAnh : BASE_URL . '/assets/images/no-image.svg';
+            ?>
+            <img src="<?= htmlspecialchars($imgSrc) ?>" 
                  alt="<?= htmlspecialchars($thuoc['TenThuoc']) ?>" 
                  onerror="this.src='<?= BASE_URL ?>/assets/images/no-image.svg'" />
         </div>

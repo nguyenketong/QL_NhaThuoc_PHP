@@ -21,6 +21,8 @@
                     <div class="mb-3">
                         <label class="form-label">Logo</label>
                         <input type="file" name="LogoFile" class="form-control" accept="image/*" />
+                        <small class="text-muted">Hoặc nhập URL:</small>
+                        <input type="text" name="HinhAnh" class="form-control mt-1" placeholder="https://..." />
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Lưu

@@ -4,6 +4,17 @@
  */
 class DonHangController extends AdminController
 {
+    // AJAX: Đếm đơn hàng chờ xử lý
+    public function countPending()
+    {
+        if (isset($_GET['ajax'])) {
+            $stmt = $this->db->query("SELECT COUNT(*) FROM DON_HANG WHERE TrangThai = 'Cho xu ly'");
+            $count = $stmt->fetchColumn();
+            $this->json(['count' => (int)$count]);
+        }
+        $this->redirect('?controller=don-hang');
+    }
+
     public function index()
     {
         $trangThai = $_GET['trangThai'] ?? '';
@@ -168,15 +179,15 @@ class DonHangController extends AdminController
         }
 
         $stmt = $this->db->prepare("
-            INSERT INTO THONG_BAO (MaNguoiDung, MaDonHang, TieuDe, NoiDung, LoaiThongBao, DuongDan, NgayTao)
-            VALUES (?, ?, ?, ?, 'DonHang', ?, NOW())
+            INSERT INTO THONG_BAO (MaNguoiDung, MaDonHang, TieuDe, NoiDung, LoaiThongBao, DuongDan, NgayTao, DaDoc)
+            VALUES (?, ?, ?, ?, 'DonHang', ?, NOW(), 0)
         ");
         $stmt->execute([
             $donHang['MaNguoiDung'],
             $id,
             $tieuDe,
             $noiDung,
-            "/don-hang/chi-tiet/$id"
+            "/donHang/chiTiet/$id"
         ]);
 
         $this->setFlash('success', 'Cập nhật trạng thái đơn hàng thành công!');
@@ -197,25 +208,41 @@ class DonHangController extends AdminController
         $stmt->execute([$id]);
         $donHang = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($donHang && $donHang['PhuongThucThanhToan'] == 'Chuyển khoản') {
-            // Cập nhật đã thanh toán
-            $stmt = $this->db->prepare("UPDATE DON_HANG SET DaThanhToan = 1 WHERE MaDonHang = ?");
+        if ($donHang && $donHang['PhuongThucThanhToan'] == 'Chuyển khoản' && $donHang['TrangThai'] == 'Cho xu ly') {
+            // Cập nhật đã thanh toán + chuyển trạng thái sang Đang giao
+            $stmt = $this->db->prepare("UPDATE DON_HANG SET DaThanhToan = 1, TrangThai = 'Dang giao' WHERE MaDonHang = ?");
             $stmt->execute([$id]);
+
+            // Trừ tồn kho khi chuyển sang Đang giao
+            $stmt = $this->db->prepare("SELECT * FROM CHI_TIET_DON_HANG WHERE MaDonHang = ?");
+            $stmt->execute([$id]);
+            $chiTiet = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($chiTiet as $ct) {
+                $this->db->prepare("
+                    UPDATE THUOC SET 
+                        SoLuongTon = COALESCE(SoLuongTon, 0) - ?,
+                        SoLuongDaBan = COALESCE(SoLuongDaBan, 0) + ?
+                    WHERE MaThuoc = ?
+                ")->execute([$ct['SoLuong'], $ct['SoLuong'], $ct['MaThuoc']]);
+            }
 
             // Tạo thông báo
             $stmt = $this->db->prepare("
-                INSERT INTO THONG_BAO (MaNguoiDung, MaDonHang, TieuDe, NoiDung, LoaiThongBao, DuongDan, NgayTao)
-                VALUES (?, ?, ?, ?, 'DonHang', ?, NOW())
+                INSERT INTO THONG_BAO (MaNguoiDung, MaDonHang, TieuDe, NoiDung, LoaiThongBao, DuongDan, NgayTao, DaDoc)
+                VALUES (?, ?, ?, ?, 'DonHang', ?, NOW(), 0)
             ");
             $stmt->execute([
                 $donHang['MaNguoiDung'],
                 $id,
-                "Đơn hàng #$id đã xác nhận thanh toán",
-                "Chúng tôi đã nhận được tiền chuyển khoản của bạn. Đơn hàng sẽ sớm được xử lý!",
-                "/don-hang/chi-tiet/$id"
+                "Đơn hàng #$id đang được giao",
+                "Chúng tôi đã nhận được tiền chuyển khoản. Đơn hàng đang được giao đến bạn!",
+                "/donHang/chiTiet/$id"
             ]);
 
-            $this->setFlash('success', 'Đã xác nhận thanh toán thành công!');
+            $this->setFlash('success', 'Đã xác nhận thanh toán và chuyển sang trạng thái Đang giao!');
+        } else {
+            $this->setFlash('error', 'Không thể xác nhận thanh toán cho đơn hàng này!');
         }
 
         $this->redirect("?controller=don-hang&action=details&id=$id");

@@ -14,12 +14,12 @@ define('DB_NAME', 'ql_nhathuoc');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
-// eSMS API
-define('ESMS_API_KEY', '1FF178AEFB29AD2C0B61FA1197E244');
-define('ESMS_SECRET_KEY', 'C3A8D07128D23B50EBE8D116CC4859');
+// eSMS API - Đăng ký tại https://esms.vn
+define('ESMS_API_KEY', 'YOUR_ESMS_API_KEY');
+define('ESMS_SECRET_KEY', 'YOUR_ESMS_SECRET_KEY');
 define('ESMS_BASE_URL', 'http://rest.esms.vn/MainService.svc/json');
 define('ESMS_BRAND_NAME', 'NhaThuoc');
-define('OTP_MODE', 'dev'); // 'real' hoặc 'dev'
+define('OTP_MODE', 'dev'); // 'real' = gửi SMS thật, 'dev' = chỉ hiển thị OTP trên màn hình
 
 // Thông tin cửa hàng
 define('STORE_NAME', 'Nhà Thuốc Tây Thanh Hoàn');
@@ -32,3 +32,9 @@ define('BANK_ID', '970422'); // MB Bank
 define('BANK_ACCOUNT_NO', '0795930020');
 define('BANK_ACCOUNT_NAME', 'NGUYEN KE TONG');
 define('BANK_TEMPLATE', 'compact2');
+
+// Google OAuth 2.0
+// Tạo credentials tại: https://console.cloud.google.com/apis/credentials
+define('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID');
+define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
+define('GOOGLE_REDIRECT_URI', BASE_URL . '/user/googleCallback');

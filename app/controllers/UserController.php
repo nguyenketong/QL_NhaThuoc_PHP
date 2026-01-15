@@ -10,7 +10,112 @@ class UserController extends Controller
         if ($this->isLoggedIn()) {
             $this->redirect('');
         }
-        $this->view('user/phone-login', ['title' => 'Đăng nhập - ' . STORE_NAME]);
+        
+        // Tạo Google Login URL
+        $googleLoginUrl = '';
+        if (!empty(GOOGLE_CLIENT_ID)) {
+            $params = [
+                'client_id' => GOOGLE_CLIENT_ID,
+                'redirect_uri' => GOOGLE_REDIRECT_URI,
+                'response_type' => 'code',
+                'scope' => 'email profile',
+                'access_type' => 'online',
+                'prompt' => 'select_account'
+            ];
+            $googleLoginUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
+        }
+        
+        $this->view('user/phone-login', [
+            'title' => 'Đăng nhập - ' . STORE_NAME,
+            'googleLoginUrl' => $googleLoginUrl
+        ]);
+    }
+
+    // GET: user/googleCallback - Xử lý callback từ Google
+    public function googleCallback()
+    {
+        $code = $_GET['code'] ?? '';
+        
+        if (empty($code)) {
+            $this->setFlash('error', 'Đăng nhập Google thất bại!');
+            $this->redirect('user/phoneLogin');
+        }
+
+        // Đổi code lấy access token
+        $tokenUrl = 'https://oauth2.googleapis.com/token';
+        $tokenData = [
+            'code' => $code,
+            'client_id' => GOOGLE_CLIENT_ID,
+            'client_secret' => GOOGLE_CLIENT_SECRET,
+            'redirect_uri' => GOOGLE_REDIRECT_URI,
+            'grant_type' => 'authorization_code'
+        ];
+
+        $ch = curl_init($tokenUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($tokenData));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+        $tokenResponse = curl_exec($ch);
+        curl_close($ch);
+
+        $tokenResult = json_decode($tokenResponse, true);
+        
+        if (empty($tokenResult['access_token'])) {
+            $this->setFlash('error', 'Không thể lấy token từ Google!');
+            $this->redirect('user/phoneLogin');
+        }
+
+        // Lấy thông tin user từ Google
+        $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $tokenResult['access_token'];
+        $ch = curl_init($userInfoUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $userResponse = curl_exec($ch);
+        curl_close($ch);
+
+        $googleUser = json_decode($userResponse, true);
+        
+        if (empty($googleUser['email'])) {
+            $this->setFlash('error', 'Không thể lấy thông tin từ Google!');
+            $this->redirect('user/phoneLogin');
+        }
+
+        // Tìm hoặc tạo người dùng
+        $nguoiDungModel = $this->model('NguoiDungModel');
+        $nguoiDung = $nguoiDungModel->findByEmail($googleUser['email']);
+
+        if (!$nguoiDung) {
+            // Tạo mới
+            $maNguoiDung = $nguoiDungModel->create([
+                'Email' => $googleUser['email'],
+                'HoTen' => $googleUser['name'] ?? 'Google User',
+                'Avatar' => $googleUser['picture'] ?? '',
+                'GoogleId' => $googleUser['id'] ?? '',
+                'LoaiDangNhap' => 'Google',
+                'VaiTro' => 'User',
+                'NgayTao' => date('Y-m-d H:i:s')
+            ]);
+            $nguoiDung = $nguoiDungModel->getById($maNguoiDung);
+        } else {
+            // Cập nhật thông tin
+            $nguoiDungModel->update($nguoiDung['MaNguoiDung'], [
+                'HoTen' => $googleUser['name'] ?? $nguoiDung['HoTen'],
+                'Avatar' => $googleUser['picture'] ?? $nguoiDung['Avatar'],
+                'GoogleId' => $googleUser['id'] ?? ''
+            ], 'MaNguoiDung');
+        }
+
+        // Lưu đăng nhập
+        $_SESSION['user_id'] = $nguoiDung['MaNguoiDung'];
+        setcookie('UserId', $nguoiDung['MaNguoiDung'], time() + 30 * 24 * 3600, '/');
+
+        $this->setFlash('success', 'Đăng nhập Google thành công!');
+        
+        // Redirect về trang trước đó
+        $redirectUrl = $_SESSION['redirect_after_login'] ?? '';
+        unset($_SESSION['redirect_after_login']);
+        
+        $this->redirect($redirectUrl ?: '');
     }
 
     // POST: user/sendOtp
@@ -30,9 +135,29 @@ class UserController extends Controller
 
         // Tạo OTP
         $otp = rand(100000, 999999);
+        
+        // Lưu vào session
         $_SESSION['otp'] = $otp;
         $_SESSION['otp_phone'] = $soDienThoai;
         $_SESSION['otp_time'] = time();
+
+        // Lưu vào database
+        $nguoiDungModel = $this->model('NguoiDungModel');
+        $nguoiDung = $nguoiDungModel->findByPhone($soDienThoai);
+        
+        if (!$nguoiDung) {
+            // Tạo người dùng mới
+            $maNguoiDung = $nguoiDungModel->create([
+                'SoDienThoai' => $soDienThoai,
+                'HoTen' => 'Khách hàng ' . substr($soDienThoai, -4),
+                'VaiTro' => 'User',
+                'OTP' => $otp,
+                'OTP_Expire' => date('Y-m-d H:i:s', strtotime('+5 minutes'))
+            ]);
+        } else {
+            // Cập nhật OTP cho người dùng đã tồn tại
+            $nguoiDungModel->saveOtp($nguoiDung['MaNguoiDung'], $otp);
+        }
 
         // Gửi OTP qua eSMS
         if (OTP_MODE === 'real') {
@@ -156,12 +281,27 @@ class UserController extends Controller
 
         $hoTen = $_POST['hoTen'] ?? '';
         $diaChi = $_POST['diaChi'] ?? '';
+        $soDienThoai = $_POST['soDienThoai'] ?? null;
 
         $nguoiDungModel = $this->model('NguoiDungModel');
-        $nguoiDungModel->update($this->getUserId(), [
+        
+        $updateData = [
             'HoTen' => $hoTen,
             'DiaChi' => $diaChi
-        ]);
+        ];
+        
+        // Chỉ cập nhật SĐT nếu user đăng nhập bằng Google và chưa có SĐT
+        if ($soDienThoai) {
+            $soDienThoai = preg_replace('/[^0-9]/', '', $soDienThoai);
+            if (strlen($soDienThoai) >= 10) {
+                $updateData['SoDienThoai'] = $soDienThoai;
+            }
+        }
+        
+        $nguoiDungModel->update($this->getUserId(), $updateData, 'MaNguoiDung');
+
+        // Cập nhật session
+        $_SESSION['user_name'] = $hoTen;
 
         $this->setFlash('success', 'Cập nhật thông tin thành công!');
         $this->redirect('user/profile');
@@ -199,13 +339,14 @@ class UserController extends Controller
     {
         $content = "Ma OTP cua ban la: $otp. Ma co hieu luc trong 5 phut.";
         
+        // SmsType = 8: Tin nhắn đầu số ngẫu nhiên (không cần Brandname)
+        // SmsType = 2: Tin nhắn Brandname (cần đăng ký trước)
         $data = [
             'ApiKey' => ESMS_API_KEY,
             'SecretKey' => ESMS_SECRET_KEY,
             'Phone' => $phone,
             'Content' => $content,
-            'Brandname' => ESMS_BRAND_NAME,
-            'SmsType' => 2
+            'SmsType' => 8
         ];
 
         $ch = curl_init(ESMS_BASE_URL . '/SendMultipleMessage_V4_post_json/');
@@ -213,9 +354,15 @@ class UserController extends Controller
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         
         $response = curl_exec($ch);
+        $error = curl_error($ch);
         curl_close($ch);
+
+        if ($error) {
+            return ['success' => false, 'message' => 'Lỗi kết nối: ' . $error];
+        }
 
         $result = json_decode($response, true);
         

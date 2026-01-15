@@ -103,9 +103,10 @@ class GioHangController extends Controller
         }
 
         $this->luuGioHang($gioHang);
-        $tongSoLuong = array_sum(array_column($gioHang, 'SoLuong'));
+        // Đếm số loại sản phẩm (số mặt hàng)
+        $soSanPham = count($gioHang);
 
-        $this->json(['success' => true, 'soLuong' => $tongSoLuong, 'message' => 'Đã thêm vào giỏ hàng!']);
+        $this->json(['success' => true, 'soLuong' => $soSanPham, 'message' => 'Đã thêm vào giỏ hàng!']);
     }
 
     // POST: gioHang/capNhat
@@ -230,7 +231,8 @@ class GioHangController extends Controller
     public function laySoLuong()
     {
         $gioHang = $this->layGioHang();
-        $soLuong = array_sum(array_column($gioHang, 'SoLuong'));
+        // Đếm số loại sản phẩm (số mặt hàng), không phải tổng số lượng
+        $soLuong = count($gioHang);
         $this->json(['soLuong' => $soLuong]);
     }
 
@@ -297,7 +299,8 @@ class GioHangController extends Controller
 
         $diaChiGiaoHang = $_POST['diaChiGiaoHang'] ?? '';
         $phuongThucThanhToan = $_POST['phuongThucThanhToan'] ?? 'Tiền mặt';
-        $hinhThucNhanHang = $_POST['hinhThucNhanHang'] ?? 'Giao hàng';
+        $hoTen = $_POST['hoTen'] ?? '';
+        $soDienThoai = $_POST['soDienThoai'] ?? '';
 
         $gioHang = $this->layGioHang();
         
@@ -311,12 +314,7 @@ class GioHangController extends Controller
             $this->redirect('gioHang');
         }
 
-        // Xử lý địa chỉ
-        if ($hinhThucNhanHang === 'Nhận tại nhà thuốc') {
-            $diaChiFinal = 'Nhận tại nhà thuốc: ' . STORE_ADDRESS;
-        } elseif (!empty($diaChiGiaoHang)) {
-            $diaChiFinal = $diaChiGiaoHang;
-        } else {
+        if (empty($diaChiGiaoHang)) {
             $this->setFlash('error', 'Vui lòng nhập địa chỉ giao hàng!');
             $this->redirect('gioHang/thanhToan');
         }
@@ -329,19 +327,15 @@ class GioHangController extends Controller
             $this->db->beginTransaction();
 
             // Tạo đơn hàng
-            $stmt = $this->db->prepare("INSERT INTO DON_HANG (MaNguoiDung, NgayDat, DiaChiGiaoHang, PhuongThucThanhToan, TongTien, TrangThai) VALUES (?, NOW(), ?, ?, ?, 'Chờ xác nhận')");
-            $stmt->execute([$this->getUserId(), $diaChiFinal, $phuongThucThanhToan, $tongTien]);
+            $stmt = $this->db->prepare("INSERT INTO DON_HANG (MaNguoiDung, NgayDatHang, DiaChiGiaoHang, PhuongThucThanhToan, TongTien, TrangThai) VALUES (?, NOW(), ?, ?, ?, 'Cho xu ly')");
+            $stmt->execute([$this->getUserId(), $diaChiGiaoHang, $phuongThucThanhToan, $tongTien]);
             $maDonHang = $this->db->lastInsertId();
 
-            // Thêm chi tiết đơn hàng
+            // Thêm chi tiết đơn hàng (KHÔNG trừ tồn kho ở đây - sẽ trừ khi admin xác nhận giao hàng)
             foreach ($gioHangDatHang as $item) {
                 $thanhTien = $item['GiaBan'] * $item['SoLuong'];
                 $stmt = $this->db->prepare("INSERT INTO CHI_TIET_DON_HANG (MaDonHang, MaThuoc, SoLuong, DonGia, ThanhTien) VALUES (?, ?, ?, ?, ?)");
                 $stmt->execute([$maDonHang, $item['MaThuoc'], $item['SoLuong'], $item['GiaBan'], $thanhTien]);
-
-                // Cập nhật số lượng tồn
-                $stmt = $this->db->prepare("UPDATE THUOC SET SoLuongTon = SoLuongTon - ?, SoLuongDaBan = SoLuongDaBan + ? WHERE MaThuoc = ?");
-                $stmt->execute([$item['SoLuong'], $item['SoLuong'], $item['MaThuoc']]);
             }
 
             $this->db->commit();

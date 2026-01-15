@@ -3,13 +3,25 @@
  * Chi tiết đơn hàng
  */
 $badgeClass = match($donHang['TrangThai']) {
-    'Chờ xác nhận' => 'bg-warning text-dark',
-    'Đã xác nhận' => 'bg-info',
-    'Đang giao' => 'bg-primary',
-    'Hoàn thành' => 'bg-success',
-    'Đã hủy' => 'bg-danger',
+    'Cho xu ly' => 'bg-warning text-dark',
+    'Dang giao' => 'bg-primary',
+    'Hoan thanh' => 'bg-success',
+    'Da huy' => 'bg-danger',
     default => 'bg-secondary'
 };
+
+$trangThaiText = match($donHang['TrangThai']) {
+    'Cho xu ly' => 'Chờ xử lý',
+    'Dang giao' => 'Đang giao',
+    'Hoan thanh' => 'Hoàn thành',
+    'Da huy' => 'Đã hủy',
+    default => $donHang['TrangThai']
+};
+
+// Kiểm tra đơn hàng chuyển khoản chưa thanh toán
+$laChuyenKhoan = ($donHang['PhuongThucThanhToan'] ?? '') === 'Chuyển khoản';
+$chuaThanhToan = empty($donHang['DaThanhToan']);
+$canThanhToan = $laChuyenKhoan && $chuaThanhToan && $donHang['TrangThai'] === 'Cho xu ly';
 ?>
 <div class="container py-4">
     <nav aria-label="breadcrumb">
@@ -22,7 +34,7 @@ $badgeClass = match($donHang['TrangThai']) {
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0"><i class="fas fa-file-invoice"></i> Đơn hàng #<?= $donHang['MaDonHang'] ?></h3>
-        <span class="badge <?= $badgeClass ?> fs-6"><?= $donHang['TrangThai'] ?></span>
+        <span class="badge <?= $badgeClass ?> fs-6"><?= $trangThaiText ?></span>
     </div>
 
     <div class="row">
@@ -35,8 +47,17 @@ $badgeClass = match($donHang['TrangThai']) {
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Ngày đặt:</strong> <?= date('d/m/Y H:i', strtotime($donHang['NgayDat'])) ?></p>
-                            <p><strong>Phương thức thanh toán:</strong> <?= $donHang['PhuongThucThanhToan'] ?></p>
+                            <p><strong>Ngày đặt:</strong> <?= date('d/m/Y H:i', strtotime($donHang['NgayDatHang'] ?? '')) ?></p>
+                            <p>
+                                <strong>Phương thức thanh toán:</strong> <?= $donHang['PhuongThucThanhToan'] ?>
+                                <?php if ($laChuyenKhoan): ?>
+                                    <?php if ($chuaThanhToan): ?>
+                                        <span class="badge bg-warning text-dark ms-2"><i class="fas fa-clock"></i> Chờ thanh toán</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-success ms-2"><i class="fas fa-check"></i> Đã thanh toán</span>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Địa chỉ giao hàng:</strong></p>
@@ -62,12 +83,18 @@ $badgeClass = match($donHang['TrangThai']) {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($chiTiet as $item): ?>
+                            <?php foreach ($chiTiet as $item): 
+                                $hinhAnh = $item['HinhAnh'] ?? '';
+                                if (!empty($hinhAnh) && strpos($hinhAnh, 'http') !== 0 && strpos($hinhAnh, BASE_URL) !== 0) {
+                                    $hinhAnh = BASE_URL . $hinhAnh;
+                                }
+                                if (empty($hinhAnh)) $hinhAnh = BASE_URL . '/assets/images/no-image.svg';
+                            ?>
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="<?= !empty($item['HinhAnh']) ? $item['HinhAnh'] : BASE_URL . '/assets/images/no-image.svg' ?>" 
-                                                 alt="" style="width: 50px; height: 50px; object-fit: cover;" class="rounded me-2">
+                                            <img src="<?= $hinhAnh ?>" 
+                                                 alt="" style="width: 50px; height: 50px; object-fit: contain;" class="rounded me-2">
                                             <span><?= htmlspecialchars($item['TenThuoc']) ?></span>
                                         </div>
                                     </td>
@@ -107,7 +134,12 @@ $badgeClass = match($donHang['TrangThai']) {
 
             <!-- Actions -->
             <div class="mt-3">
-                <?php if ($donHang['TrangThai'] === 'Chờ xác nhận'): ?>
+                <?php if ($canThanhToan): ?>
+                    <a href="<?= BASE_URL ?>/donHang/thanhToanQR/<?= $donHang['MaDonHang'] ?>" class="btn btn-success w-100 mb-2">
+                        <i class="fas fa-qrcode"></i> Thanh toán ngay
+                    </a>
+                <?php endif; ?>
+                <?php if ($donHang['TrangThai'] === 'Cho xu ly'): ?>
                     <a href="<?= BASE_URL ?>/donHang/huy/<?= $donHang['MaDonHang'] ?>" class="btn btn-danger w-100 mb-2" onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
                         <i class="fas fa-times"></i> Hủy đơn hàng
                     </a>

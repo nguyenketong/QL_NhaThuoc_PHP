@@ -22,10 +22,12 @@ class ThuongHieuController extends AdminController
     public function create()
     {
         if ($this->isPost()) {
-            $hinhAnh = null;
-            if (isset($_FILES['LogoFile']) && $_FILES['LogoFile']['size'] > 0) {
-                $hinhAnh = $this->uploadImage($_FILES['LogoFile'], 'images/brands');
-            }
+            $hinhAnh = $this->processImage(
+                $_FILES['LogoFile'] ?? null,
+                $_POST['HinhAnh'] ?? null,
+                null,
+                'images/brands'
+            );
 
             $stmt = $this->db->prepare("INSERT INTO THUONG_HIEU (TenThuongHieu, QuocGia, DiaChi, HinhAnh) VALUES (?, ?, ?, ?)");
             $stmt->execute([
@@ -54,10 +56,12 @@ class ThuongHieuController extends AdminController
         }
 
         if ($this->isPost()) {
-            $hinhAnh = $thuongHieu['HinhAnh'];
-            if (isset($_FILES['LogoFile']) && $_FILES['LogoFile']['size'] > 0) {
-                $hinhAnh = $this->uploadImage($_FILES['LogoFile'], 'images/brands');
-            }
+            $hinhAnh = $this->processImage(
+                $_FILES['LogoFile'] ?? null,
+                $_POST['HinhAnh'] ?? null,
+                $thuongHieu['HinhAnh'],
+                'images/brands'
+            );
 
             $stmt = $this->db->prepare("UPDATE THUONG_HIEU SET TenThuongHieu = ?, QuocGia = ?, DiaChi = ?, HinhAnh = ? WHERE MaThuongHieu = ?");
             $stmt->execute([

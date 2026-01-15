@@ -29,10 +29,23 @@
     </div>
     <div class="col-md-3">
         <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-calendar-day"></i></div>
+            <div>
+                <div class="stat-value"><?= number_format($doanhThuHomNay ?? 0, 0, ',', '.') ?>đ</div>
+                <div class="stat-label">Doanh thu hôm nay</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Doanh thu tháng -->
+<div class="row g-4 mb-4">
+    <div class="col-md-12">
+        <div class="stat-card">
             <div class="stat-icon red"><i class="fas fa-money-bill-wave"></i></div>
             <div>
                 <div class="stat-value"><?= number_format($doanhThuThang ?? 0, 0, ',', '.') ?>đ</div>
-                <div class="stat-label">Doanh thu tháng</div>
+                <div class="stat-label">Doanh thu tháng <?= date('m/Y') ?></div>
             </div>
         </div>
     </div>

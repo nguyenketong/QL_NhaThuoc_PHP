@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h6 class="mb-0">Danh sách nhóm thuốc</h6>
     <a href="<?= BASE_URL ?>/admin/?controller=nhom-thuoc&action=create" class="btn btn-success">
-        <i class="fas fa-plus"></i> Thêm nhóm thuốc
+        <i class="fas fa-plus"></i> Thêm nhóm
     </a>
 </div>
 
@@ -14,20 +14,28 @@
                 <th>Danh mục cha</th>
                 <th>Mô tả</th>
                 <th>Số thuốc</th>
-                <th width="150">Thao tác</th>
+                <th width="120">Thao tác</th>
             </tr>
         </thead>
         <tbody>
             <?php if (!empty($danhSach)): ?>
                 <?php foreach ($danhSach as $item): ?>
-                    <tr>
+                    <?php $isParent = $item['isParent'] ?? empty($item['MaDanhMucCha']); ?>
+                    <tr class="<?= $isParent ? 'table-light' : '' ?>">
                         <td><?= $item['MaNhomThuoc'] ?></td>
-                        <td><strong><?= htmlspecialchars($item['TenNhomThuoc']) ?></strong></td>
                         <td>
-                            <?php if ($item['TenDanhMucCha']): ?>
+                            <?php if ($isParent): ?>
+                                <strong><?= htmlspecialchars($item['TenNhomThuoc']) ?></strong>
+                                <span class="badge bg-warning text-dark ms-2">Danh mục cha</span>
+                            <?php else: ?>
+                                <span class="text-muted ms-3">└─</span> <?= htmlspecialchars($item['TenNhomThuoc']) ?>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if (!empty($item['TenDanhMucCha'])): ?>
                                 <span class="badge bg-secondary"><?= htmlspecialchars($item['TenDanhMucCha']) ?></span>
                             <?php else: ?>
-                                <span class="text-muted">Danh mục gốc</span>
+                                <span class="text-muted">—</span>
                             <?php endif; ?>
                         </td>
                         <td><?= htmlspecialchars($item['MoTa'] ?? '') ?></td>
@@ -37,7 +45,7 @@
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form action="<?= BASE_URL ?>/admin/?controller=nhom-thuoc&action=delete&id=<?= $item['MaNhomThuoc'] ?>" method="post" class="d-inline"
-                                  onsubmit="return confirm('Bạn có chắc muốn xóa?')">
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa nhóm thuốc này?')">
                                 <button type="submit" class="btn btn-sm btn-danger">
                                     <i class="fas fa-trash"></i>
                                 </button>

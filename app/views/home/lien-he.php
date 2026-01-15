@@ -13,61 +13,75 @@
 
     <h1 class="text-center text-primary mb-4">Liên hệ với chúng tôi</h1>
 
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin liên hệ</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-4">
-                        <h6><i class="fas fa-map-marker-alt text-danger"></i> Địa chỉ</h6>
-                        <p class="text-muted"><?= STORE_ADDRESS ?></p>
-                    </div>
-                    <div class="mb-4">
-                        <h6><i class="fas fa-phone text-success"></i> Hotline</h6>
-                        <p><a href="tel:<?= STORE_PHONE ?>" class="text-decoration-none h4"><?= STORE_PHONE ?></a></p>
-                        <small class="text-muted">Miễn phí - Hoạt động 24/7</small>
-                    </div>
-                    <div class="mb-4">
-                        <h6><i class="fas fa-envelope text-primary"></i> Email</h6>
-                        <p><a href="mailto:<?= STORE_EMAIL ?>" class="text-decoration-none"><?= STORE_EMAIL ?></a></p>
-                    </div>
-                    <div>
-                        <h6><i class="fas fa-clock text-warning"></i> Giờ làm việc</h6>
-                        <p class="text-muted">Thứ 2 - Chủ nhật: 7:00 - 22:00</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-paper-plane"></i> Gửi tin nhắn</h5>
-                </div>
-                <div class="card-body">
-                    <form>
-                        <div class="mb-3">
-                            <label class="form-label">Họ tên</label>
-                            <input type="text" class="form-control" placeholder="Nhập họ tên">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="fas fa-map-marker-alt fa-2x text-danger"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Địa chỉ</h6>
+                                    <p class="text-muted mb-0"><?= STORE_ADDRESS ?></p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" placeholder="Nhập số điện thoại">
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="fas fa-phone fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Hotline</h6>
+                                    <p class="mb-0"><a href="tel:<?= STORE_PHONE ?>" class="text-decoration-none h5 text-primary"><?= STORE_PHONE ?></a></p>
+                                    <small class="text-muted">Miễn phí - Hoạt động 24/7</small>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" placeholder="Nhập email">
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="fas fa-envelope fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Email</h6>
+                                    <p class="mb-0"><a href="mailto:<?= STORE_EMAIL ?>" class="text-decoration-none"><?= STORE_EMAIL ?></a></p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nội dung</label>
-                            <textarea class="form-control" rows="4" placeholder="Nhập nội dung tin nhắn"></textarea>
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <i class="fas fa-clock fa-2x text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Giờ làm việc</h6>
+                                    <p class="text-muted mb-0">Thứ 2 - Chủ nhật: 7:00 - 22:00</p>
+                                </div>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-paper-plane"></i> Gửi tin nhắn
-                        </button>
-                    </form>
+                    </div>
+                    
+                    <!-- Nút liên hệ nhanh -->
+                    <hr>
+                    <div class="text-center">
+                        <h6 class="mb-3">Liên hệ nhanh</h6>
+                        <a href="tel:<?= STORE_PHONE ?>" class="btn btn-success me-2">
+                            <i class="fas fa-phone"></i> Gọi ngay
+                        </a>
+                        <a href="https://zalo.me/<?= STORE_PHONE ?>" target="_blank" class="btn btn-primary me-2">
+                            <i class="fas fa-comment-dots"></i> Chat Zalo
+                        </a>
+                        <a href="mailto:<?= STORE_EMAIL ?>" class="btn btn-outline-primary">
+                            <i class="fas fa-envelope"></i> Gửi Email
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -76,8 +90,8 @@
     <!-- Map -->
     <div class="card">
         <div class="card-body p-0">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.0!2d106.3!3d9.9!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwNTQnMDAuMCJOIDEwNsKwMTgnMDAuMCJF!5e0!3m2!1svi!2s!4v1234567890" 
-                    width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d503170.307906194!2d105.17266943826036!3d9.848852231731945!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x310a7648e6d8526f%3A0xb5d56e5f2b715884!2zVGh14buRYyBUw6J5IFRoYW5oIEhvw6BuZw!5e0!3m2!1svi!2s!4v1768199879488!5m2!1svi!2s" 
+                    width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
     </div>
 </div>

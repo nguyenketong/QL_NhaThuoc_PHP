@@ -106,10 +106,13 @@ $khongTheHuy = $dangGiao || ($donHang['DaThanhToan'] ?? false);
                         Kiểm tra tài khoản ngân hàng đã nhận được <strong class="text-danger"><?= number_format($donHang['TongTien'] ?? 0, 0, ',', '.') ?>đ</strong> 
                         với nội dung <strong class="text-success"><?= $noiDungCK ?></strong> chưa?
                     </p>
+                    <div class="alert alert-info small mb-3">
+                        <i class="fas fa-info-circle"></i> Khi xác nhận, đơn hàng sẽ tự động chuyển sang trạng thái <strong>"Đang giao"</strong>
+                    </div>
                     <form action="<?= BASE_URL ?>/admin/?controller=don-hang&action=xacNhanThanhToan" method="post">
                         <input type="hidden" name="id" value="<?= $donHang['MaDonHang'] ?>" />
-                        <button type="submit" class="btn btn-success w-100" onclick="return confirm('Xác nhận đã nhận được tiền chuyển khoản?')">
-                            <i class="fas fa-check-circle"></i> Đã nhận tiền
+                        <button type="submit" class="btn btn-success w-100" onclick="return confirm('Xác nhận đã nhận tiền và chuyển sang Đang giao?')">
+                            <i class="fas fa-check-circle"></i> Đã nhận tiền - Giao hàng
                         </button>
                     </form>
                 </div>

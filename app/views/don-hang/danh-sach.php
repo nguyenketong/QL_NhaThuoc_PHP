@@ -39,26 +39,41 @@
                     <?php foreach ($danhSach as $dh): ?>
                         <tr>
                             <td><strong>#<?= $dh['MaDonHang'] ?></strong></td>
-                            <td><?= date('d/m/Y H:i', strtotime($dh['NgayDat'])) ?></td>
+                            <td><?= date('d/m/Y H:i', strtotime($dh['NgayDatHang'] ?? '')) ?></td>
                             <td class="text-danger fw-bold"><?= number_format($dh['TongTien'], 0, ',', '.') ?>đ</td>
                             <td>
                                 <?php
                                 $badgeClass = match($dh['TrangThai']) {
-                                    'Chờ xác nhận' => 'bg-warning text-dark',
-                                    'Đã xác nhận' => 'bg-info',
-                                    'Đang giao' => 'bg-primary',
-                                    'Hoàn thành' => 'bg-success',
-                                    'Đã hủy' => 'bg-danger',
+                                    'Cho xu ly' => 'bg-warning text-dark',
+                                    'Dang giao' => 'bg-primary',
+                                    'Hoan thanh' => 'bg-success',
+                                    'Da huy' => 'bg-danger',
                                     default => 'bg-secondary'
                                 };
+                                $trangThaiText = match($dh['TrangThai']) {
+                                    'Cho xu ly' => 'Chờ xử lý',
+                                    'Dang giao' => 'Đang giao',
+                                    'Hoan thanh' => 'Hoàn thành',
+                                    'Da huy' => 'Đã hủy',
+                                    default => $dh['TrangThai']
+                                };
                                 ?>
-                                <span class="badge <?= $badgeClass ?>"><?= $dh['TrangThai'] ?></span>
+                                <span class="badge <?= $badgeClass ?>"><?= $trangThaiText ?></span>
                             </td>
                             <td>
                                 <a href="<?= BASE_URL ?>/donHang/chiTiet/<?= $dh['MaDonHang'] ?>" class="btn btn-outline-primary btn-sm">
                                     <i class="fas fa-eye"></i> Chi tiết
                                 </a>
-                                <?php if ($dh['TrangThai'] === 'Chờ xác nhận'): ?>
+                                <?php 
+                                $laChuyenKhoanDH = ($dh['PhuongThucThanhToan'] ?? '') === 'Chuyển khoản';
+                                $chuaThanhToanDH = empty($dh['DaThanhToan']);
+                                if ($laChuyenKhoanDH && $chuaThanhToanDH && $dh['TrangThai'] === 'Cho xu ly'): 
+                                ?>
+                                    <a href="<?= BASE_URL ?>/donHang/thanhToanQR/<?= $dh['MaDonHang'] ?>" class="btn btn-success btn-sm">
+                                        <i class="fas fa-qrcode"></i> Thanh toán
+                                    </a>
+                                <?php endif; ?>
+                                <?php if ($dh['TrangThai'] === 'Cho xu ly'): ?>
                                     <a href="<?= BASE_URL ?>/donHang/huy/<?= $dh['MaDonHang'] ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
                                         <i class="fas fa-times"></i> Hủy
                                     </a>
